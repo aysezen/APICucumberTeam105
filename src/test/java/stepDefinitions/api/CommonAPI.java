@@ -21,6 +21,7 @@ import utilities.ConfigReader;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 
 public class CommonAPI {
@@ -35,27 +36,62 @@ public class CommonAPI {
     PojoHerokuappBooking reqBody;
     PojoHerokuappExpectedBody expBody;
     PojoJsonPlace expData;
+    PojoHerokuappExpectedBody pojoHerokuappExpectedBody;
 
     PojoJsonPlace requestBody;
     @Before(order = 0)
     public void beforeAPIScenario() {
         spec = new RequestSpecBuilder()
-                .setBaseUri(ConfigReader.getProperty("base_url_jsonplaceholder"))
+                .setBaseUri(ConfigReader.getProperty("base_url_herokuapp"))
                 .build();
     }
 
-    @Given("JsonPlaceHolder Api Put request icin gerekli URL ve Body hazirla")
-    public void json_place_holder_api_put_request_icin_gerekli_url_ve_body_hazirla() {
-       spec.pathParams("pp1","posts","pp2",70);
 
-       requestBody = new PojoJsonPlace("Ahmet","Merhaba",10,70);
+    @Given("Herokuapp Api gerekli URL icin {string} path param ve {string} query param hazirla")
+    public void herokuapp_api_gerekli_url_icin_path_param_ve_query_param_hazirla(String pathParam, String queryParam) {
+       spec.pathParam("pp1",pathParam).queryParam("firstname",queryParam);
+    }
+    @Given("Herokuapp Api Get Request Expected Body hazirla")
+    public void herokuapp_api_get_request_expected_body_hazirla() {
+        /*
+        {
+#     "firstname": "John",
+#     "lastname": "Smith",
+#     "totalprice": 111,
+#     "depositpaid": true,
+#     "bookingdates": {
+#     "checkin": "2018-01-01",
+#     "checkout": "2019-01-01"
+#     },
+#     "additionalneeds": "Breakfast"
+#     } 1112
+         */
+        PojoHerokuappBookingDates bookingDates1 = new PojoHerokuappBookingDates("2018-01-01","2019-01-01");
+        PojoHerokuappBooking pojoHerokuappBooking = new PojoHerokuappBooking("John","Smith",111,true,"Breakfast",bookingDates1);
+        pojoHerokuappExpectedBody = new PojoHerokuappExpectedBody(1112,pojoHerokuappBooking);
 
     }
-    @Given("JsonPlaceHolder Api Put request icin Expected Data hazirla")
-    public void json_place_holder_api_put_request_icin_expected_data_hazirla() {
-         expData = requestBody;
+    @Given("Herokuapp Api Get Request donen Response'i kaydet")
+    public void herokuapp_api_get_request_donen_response_i_kaydet() {
+       response = given().spec(spec).when().get("/{pp1}");
     }
-    @Given("JsonPlaceHolder Api Put request sonucunda donen Response'i kaydet")
+    @Given("Herokuapp Api Get Request donen Response'i assert et")
+    public void herokuapp_api_get_request_donen_response_i_assert_et() {
+        response.then().assertThat().statusCode(200).body("bookingid",hasItem(7699));
+    }
+
+   @Given("JsonPlaceHolder Api Put request icin gerekli URL ve Body hazirla")
+   public void json_place_holder_api_put_request_icin_gerekli_url_ve_body_hazirla() {
+      spec.pathParams("pp1","posts","pp2",70);
+
+      requestBody = new PojoJsonPlace("Ahmet","Merhaba",10,70);
+
+   }
+   @Given("JsonPlaceHolder Api Put request icin Expected Data hazirla")
+   public void json_place_holder_api_put_request_icin_expected_data_hazirla() {
+        expData = requestBody;
+   }
+   @Given("JsonPlaceHolder Api Put request sonucunda donen Response'i kaydet")
     public void json_place_holder_api_put_request_sonucunda_donen_response_i_kaydet() {
 
       response = given().spec(spec).contentType(ContentType.JSON).when().body(requestBody).put("/{pp1}/{pp2}");
