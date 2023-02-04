@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<testsuite errors="0" failures="0" name="io.cucumber.core.plugin.JUnitFormatter" skipped="0" tests="1" time="9.294">
+    <testcase classname="CommonAPI" name="Post ornegi" time="8.698">
+        <system-out><![CDATA[* URL ve body hazirla.......................................................passed
+* Expected Data hazirla.....................................................passed
+* Response'i kaydet.........................................................passed
+* Assertion.................................................................passed
+]]></system-out>
+    </testcase>
+</testsuite>
