@@ -16,6 +16,7 @@ import pojos.Dummy_Pojo.PojoDummyExpectedBody;
 import pojos.Herokuapp_Pojo.PojoHerokuappBooking;
 import pojos.Herokuapp_Pojo.PojoHerokuappBookingDates;
 import pojos.Herokuapp_Pojo.PojoHerokuappExpectedBody;
+import pojos.JsonPlace_Pojo.PojoJsonPlace;
 import utilities.ConfigReader;
 
 import static io.restassured.RestAssured.given;
@@ -33,12 +34,56 @@ public class CommonAPI {
     PojoHerokuappBookingDates bookingDates;
     PojoHerokuappBooking reqBody;
     PojoHerokuappExpectedBody expBody;
+    PojoJsonPlace expData;
+
+    PojoJsonPlace requestBody;
     @Before(order = 0)
-    public void beforeAPIScnerio() {
+    public void beforeAPIScenario() {
         spec = new RequestSpecBuilder()
-                .setBaseUri(ConfigReader.getProperty("base_url_herokuapp"))
+                .setBaseUri(ConfigReader.getProperty("base_url_jsonplaceholder"))
                 .build();
     }
+
+    @Given("JsonPlaceHolder Api Put request icin gerekli URL ve Body hazirla")
+    public void json_place_holder_api_put_request_icin_gerekli_url_ve_body_hazirla() {
+       spec.pathParams("pp1","posts","pp2",70);
+
+       requestBody = new PojoJsonPlace("Ahmet","Merhaba",10,70);
+
+    }
+    @Given("JsonPlaceHolder Api Put request icin Expected Data hazirla")
+    public void json_place_holder_api_put_request_icin_expected_data_hazirla() {
+         expData = requestBody;
+    }
+    @Given("JsonPlaceHolder Api Put request sonucunda donen Response'i kaydet")
+    public void json_place_holder_api_put_request_sonucunda_donen_response_i_kaydet() {
+
+      response = given().spec(spec).contentType(ContentType.JSON).when().body(requestBody).put("/{pp1}/{pp2}");
+
+      response.prettyPrint();
+    }
+    @Given("JsonPlaceHolder Api Put request sonucunda donen Response'i assert et")
+    public void json_place_holder_api_put_request_sonucunda_donen_response_i_assert_et() {
+        /*
+          {
+    "title":"Ahmet",
+    "body":"Merhaba",
+    "userId":10,
+    "id":70
+    }
+         */
+
+     PojoJsonPlace respPojo = response.as(PojoJsonPlace.class);
+
+         assertEquals(expData.getTitle(),respPojo.getTitle());
+         assertEquals(expData.getBody(),respPojo.getBody());
+         assertEquals(expData.getId(),respPojo.getId());
+         assertEquals(expData.getUserId(),respPojo.getUserId());
+
+
+    }
+
+
 
     @Given("URL ve body hazirla")
     public void url_ve_body_hazirla() {
@@ -125,69 +170,6 @@ public class CommonAPI {
         spec.queryParam("key", ConfigReader.getProperty("key"));
         spec.queryParam("token",ConfigReader.getProperty("token"));
 
-    }
-    @When("Api user sends post requests and gets response")
-    public void api_user_sends_post_requests_and_gets_response() {
-        response = given()
-                .spec(spec)
-                .contentType(ContentType.JSON)
-                .when()
-                .post(HooksAPI.fullPath);
-        HooksAPI.response = response;
-        HooksAPI.response.prettyPrint();
-    }
-
-    @Given("API user sends requests and gets response")
-    public void api_user_sends_requests_and_gets_response() {
-
-
-        response = given()
-                .headers("Authorization", "Bearer " + HooksAPI.token)
-                .contentType(ContentType.JSON)
-                .spec(spec)
-                .when()
-                //.body(HooksAPI.dataCredentials)
-                .get(HooksAPI.fullPath);
-        HooksAPI.response = response;
-        //       response.prettyPrint();
-        HooksAPI.response.prettyPrint();
-    }
-
-    @Then("API user verify that status code is {int}")
-    public void api_user_verify_that_status_code_is(int statusCode) {
-        HooksAPI.response.then().assertThat()
-                .statusCode(statusCode)
-                .contentType(ContentType.JSON);
-//        response.prettyPrint();
-        HooksAPI.response.prettyPrint();
-    }
-
-    @Then("API user verify response with matcher class")
-    public void api_user_verify_response_with_matcher_class() {
-        response.then().body("user.id", equalTo(453));
-        response.then().body("user.username", equalTo("4545464646"));
-        response.then().body("user.last_name", equalTo("testLastName"));
-    }
-
-    @Then("API user verify response with json path")
-    public void api_user_verify_response_with_json_path() {
-        JsonPath json = response.jsonPath();
-
-        int actualId = json.getInt("user.customer_addresses[0].customer_id");
-        Assert.assertEquals(453, actualId);
-
-        String actualState = json.getString("user.customer_addresses[0].state");
-        Assert.assertEquals("3953", actualState);
-    }
-
-    @Given("API user verify that response message is {string} v1")
-    public void api_user_verify_that_response_message_is_v1(String message) {
-        HooksAPI.response.then().body("msg", equalTo(message));
-    }
-
-    @Given("API user verify that response message is {string} v2")
-    public void api_user_verify_that_response_message_is_v2(String message) {
-        HooksAPI.response.then().body("message", equalTo(message));
     }
 
 }
